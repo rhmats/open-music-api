@@ -3,6 +3,8 @@ require('dotenv').config();
 const Hapi = require('@hapi/hapi');
 const ClientError = require('./exceptions/ClientError');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 
 // Albums
 const albums = require('./api/albums');
@@ -50,6 +52,11 @@ const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
+// uploads
+const uploads = require('./api/uploads');
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
+
 const init = async () => {
   const albumsService = new AlbumsService();
   const songsService = new SongsService();
@@ -59,10 +66,16 @@ const init = async () => {
   const playlistsService = new PlaylistsService(collaborationsService);
   const playlistSongsService = new PlaylistSongsService(collaborationsService);
   const playlistSongsActivitiesService = new PlaylistSongsActivitiesService();
+  const storageService = new StorageService(
+    path.resolve(__dirname, 'api/uploads/file/images')
+  );
 
   const server = Hapi.server({
     port: process.env.PORT,
     host: process.env.HOST,
+    debug: {
+      request:['error'],
+    },
     routes: {
       cors: {
         origin: ['*'],
@@ -73,6 +86,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -166,6 +182,14 @@ const init = async () => {
         validator: ExportsValidator,
       },
     },
+    {
+      plugin: uploads,
+      options: {
+        service: storageService,
+        albumsService,
+        validator: UploadsValidator,
+      },
+    },
   ]);
 
   await server.ext('onPreResponse', (request, h) => {
@@ -175,10 +199,12 @@ const init = async () => {
     if (response instanceof ClientError) {
       // membuat response baru dari response toolkit sesuai kebutuhan error handling
       console.log(response);
-      return h.response({
-        status: 'fail',
-        message: response.message,
-      }).code(response.statusCode);
+      return h
+        .response({
+          status: 'fail',
+          message: response.message,
+        })
+        .code(response.statusCode);
     }
 
     if (response instanceof Error) {
@@ -191,11 +217,13 @@ const init = async () => {
         return h.response(payload).code(404);
       default:
         console.log(response);
-        return h.response({
-          status: 'error',
-          error: payload.error,
-          message: payload.message,
-        }).code(500);
+        return h
+          .response({
+            status: 'error',
+            error: payload.error,
+            message: payload.message,
+          })
+          .code(500);
       }
     }
 

@@ -1,10 +1,9 @@
 /* eslint-disable camelcase */
-const mapAlbumsToModel = ({ id, name, year, created_at, updated_at }) => ({
+const mapAlbumsToModel = ({ id, name, year, coverUrl }) => ({
   id,
   name,
   year,
-  createdAt: created_at,
-  updatedAt: updated_at,
+  coverUrl,
 });
 
 const mapSongsToModel = ({

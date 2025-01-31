@@ -24,14 +24,14 @@ class UploadsHandler {
 
     const filename = await this._service.writeFile(cover, cover.hapi);
 
-    const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/uploads/file/images/${filename}`;
+    const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`;
     await this._albumsService.updateCoverAlbumById(albumId, coverUrl);
 
     const response = h.response({
       status: 'success',
       message: 'Sampul berhasil diunggah',
       data: {
-        fileLocation: `http://${process.env.HOST}:${process.env.PORT}/uploads/file/images/${filename}`,
+        fileLocation: `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`,
       },
     });
     response.code(201);

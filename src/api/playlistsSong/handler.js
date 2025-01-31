@@ -1,5 +1,3 @@
-const ClientError = require('../../exceptions/ClientError');
-
 class PlaylistSongsHandler {
   constructor(playlistSongsService, validator, playlistService, songsService) {
     this._playlistSongsService = playlistSongsService;

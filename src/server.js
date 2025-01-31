@@ -74,7 +74,7 @@ const init = async () => {
     port: process.env.PORT,
     host: process.env.HOST,
     debug: {
-      request:['error'],
+      request: ['error'],
     },
     routes: {
       cors: {
@@ -193,11 +193,9 @@ const init = async () => {
   ]);
 
   await server.ext('onPreResponse', (request, h) => {
-    // mendapatkan konteks response dari request
     const { response } = request;
 
     if (response instanceof ClientError) {
-      // membuat response baru dari response toolkit sesuai kebutuhan error handling
       console.log(response);
       return h
         .response({
@@ -208,13 +206,20 @@ const init = async () => {
     }
 
     if (response instanceof Error) {
-      // kondisi ini digunakan untuk menangkap error yang tidak secara manual di-throw
       const { statusCode, payload } = response.output;
+
       switch (statusCode) {
       case 401:
         return h.response(payload).code(401);
       case 404:
         return h.response(payload).code(404);
+      case 413: // Tangani error 413 secara eksplisit
+        return h
+          .response({
+            status: 'fail',
+            message: 'Ukuran file terlalu besar, maksimal 512 KB',
+          })
+          .code(413);
       default:
         console.log(response);
         return h
@@ -227,7 +232,6 @@ const init = async () => {
       }
     }
 
-    // jika bukan ClientError, lanjutkan dengan response sebelumnya (tanpa terintervensi)
     return response.continue || response;
   });
 

@@ -13,26 +13,25 @@ class UploadsHandler {
     const { cover } = request.payload;
 
     if (!cover) {
-      return h
-        .response({
-          status: 'fail',
-          message: 'File tidak ditemukan dalam request',
-        })
-        .code(400);
+      const response = h.response({
+        status: 'fail',
+        message: 'Gambar harus diupload',
+      });
+      response.code(400);
+      return response;
     }
-
     this._validator.validateImageHeaders(cover.hapi.headers);
 
     const filename = await this._service.writeFile(cover, cover.hapi);
 
-    const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`;
+    const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/uploads/file/images/${filename}`;
     await this._albumsService.updateCoverAlbumById(albumId, coverUrl);
 
     const response = h.response({
       status: 'success',
       message: 'Sampul berhasil diunggah',
       data: {
-        fileLocation: `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`,
+        fileLocation: `http://${process.env.HOST}:${process.env.PORT}/uploads/file/images/${filename}`,
       },
     });
     response.code(201);

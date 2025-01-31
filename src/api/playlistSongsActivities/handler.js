@@ -1,5 +1,3 @@
-const ClientError = require('../../exceptions/ClientError');
-
 class PlaylistSongsActivitiesHandler {
   constructor(service, playlistService, validator) {
     this._service = service;
@@ -15,10 +13,6 @@ class PlaylistSongsActivitiesHandler {
     const { id: credentialId } = request.auth.credentials;
 
     await this._playlistService.verifyPlaylistAccess(playlistId, credentialId);
-
-    /* const activities = await this._playlistService.verifyPlaylistAccess(
-      playlistId
-    ); */
 
     const data = {};
     const playlist = await this._playlistService.getPlaylistById(credentialId, playlistId);
